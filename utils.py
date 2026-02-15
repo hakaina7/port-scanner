@@ -22,3 +22,10 @@ def parse_ports(ports_str):
         else:
             ports.add(int(part))
     return sorted(list(ports))
+
+def parse_ports(port_range):
+    if "-" in port_range:
+        start, end = map(int, port_range.split("-"))
+        return range(start, end + 1)
+    else:
+        return [int(port_range)]
