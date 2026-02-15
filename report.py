@@ -17,9 +17,10 @@ def save_txt_report(host, results):
             f.write(f"{port}: {status}\n")
     return filename
 
-def save_pdf_report(host, results):
+def save_pdf_report(host, results, scan_time):
     os.makedirs("reports", exist_ok=True)
     filename = f"reports/port_report_{host}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
     doc = SimpleDocTemplate(filename, pagesize=A4)
     elements = []
     styles = getSampleStyleSheet()
@@ -28,14 +29,17 @@ def save_pdf_report(host, results):
 
     elements.append(Paragraph(f"Port scan report for {host}", title_style))
     elements.append(Paragraph(f"Generated at: {datetime.now()}", normal_style))
+    elements.append(Paragraph(f"Scan duration: {scan_time} seconds", normal_style))
     elements.append(Spacer(1, 0.2*inch))
     elements.append(HRFlowable(width="100%", thickness=1))
     elements.append(Spacer(1, 0.2*inch))
 
     for port, status in results:
         status_safe = html.escape(status)
-        color = "green" if status=="open" else "red" if status=="closed" else "orange"
-        elements.append(Paragraph(f"{port}: <font color='{color}'>{status_safe}</font>", normal_style))
+        color = "green" if status == "open" else "red" if status == "closed" else "orange"
+        elements.append(
+            Paragraph(f"{port}: <font color='{color}'>{status_safe}</font>", normal_style)
+        )
         elements.append(Spacer(1, 0.05*inch))
 
     doc.build(elements)
