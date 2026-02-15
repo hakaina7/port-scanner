@@ -24,8 +24,10 @@ def parse_ports(ports_str):
     return sorted(list(ports))
 
 def parse_ports(port_range):
+    """Превращает строку вида '20-80' или '22' в список портов."""
     if "-" in port_range:
         start, end = map(int, port_range.split("-"))
         return range(start, end + 1)
     else:
         return [int(port_range)]
+

@@ -1,8 +1,9 @@
 import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
+# ------------------ Сканирование ------------------
 def scan_port(host, port, timeout):
+    """Сканирует один TCP порт и пытается получить баннер."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(timeout)
@@ -14,8 +15,8 @@ def scan_port(host, port, timeout):
         pass
     return None
 
-
 def grab_banner(sock):
+    """Пробуем прочитать баннер сервиса (HTTP HEAD запрос)."""
     try:
         sock.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
         banner = sock.recv(1024).decode(errors="ignore").strip()
@@ -23,20 +24,16 @@ def grab_banner(sock):
     except Exception:
         return "No banner"
 
-
+# ------------------ Запуск сканирования ------------------
 def run_scan(host, ports, timeout=1, threads=100):
-    open_ports = {}
-
+    """Сканируем список портов с многопоточностью."""
+    results = []
     with ThreadPoolExecutor(max_workers=threads) as executor:
-        futures = {
-            executor.submit(scan_port, host, port, timeout): port
-            for port in ports
-        }
-
+        futures = {executor.submit(scan_port, host, port, timeout): port for port in ports}
         for future in as_completed(futures):
             result = future.result()
             if result:
-                port, banner = result
-                open_ports[port] = banner
-
-    return open_ports
+                results.append(result)
+            else:
+                results.append((futures[future], None))  # для прогресс-бара
+    return results
